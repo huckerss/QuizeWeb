@@ -36,6 +36,20 @@
 .snum{font-size:44px;font-weight:500;color:#534AB7;margin:.8rem 0}
 .rbtn{padding:8px 20px;border-radius:var(--border-radius-md);border:.5px solid #7F77DD;background:#EEEDFE;color:#534AB7;font-size:13px;cursor:pointer;margin:4px}
 .rbtn:hover{background:#CECBF6}
+.mp{text-align:center;padding:2.5rem 1rem}
+.mp-title{font-size:26px;font-weight:600;color:#534AB7;margin-bottom:.4rem}
+.mp-sub{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.8rem}
+.mp-cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mp-cat{padding:1.2rem 1rem;border-radius:var(--border-radius-lg);border:.5px solid var(--color-border-tertiary);background:var(--color-background-primary);cursor:pointer;transition:border-color .15s,background .15s}
+.mp-cat:hover{border-color:#7F77DD;background:#EEEDFE}
+.mp-cat-name{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:.3rem}
+.mp-cat-cnt{font-size:12px;color:var(--color-text-tertiary)}
+.mp-start{padding:10px 28px;border-radius:var(--border-radius-md);border:.5px solid #7F77DD;background:#534AB7;color:#fff;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:.6rem;transition:background .15s}
+.mp-start:hover{background:#7F77DD}
+.mp-fbtns{display:flex;gap:8px;justify-content:center;margin-top:.5rem}
+.mp-fb{padding:7px 16px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:13px;cursor:pointer;transition:background .12s}
+.mp-fb:hover{background:#EEEDFE;color:#534AB7;border-color:#7F77DD}
+.hdr h2{cursor:pointer}
 </style>
 <div id="app"></div>
 <script>
@@ -311,15 +325,23 @@ const Q=[
 
 const CATS=['all','mc','sub','정치·경제','교육·의료·복지','사회·노동·역사','법률·언론·문화'];
 const CL={all:'전체',mc:'객관식',sub:'주관식','정치·경제':'정치·경제','교육·의료·복지':'교육·의료·복지','사회·노동·역사':'사회·노동·역사','법률·언론·문화':'법률·언론·문화'};
-let S={f:'all',qs:[],i:0,ans:{},rev:{},done:false};
+let S={page:'main',f:'all',qs:[],i:0,ans:{},rev:{},done:false};
 function filtered(){if(S.f==='all')return Q;if(S.f==='mc')return Q.filter(x=>x.t==='mc');if(S.f==='sub')return Q.filter(x=>x.t==='sub');return Q.filter(x=>x.s===S.f);}
-function start(f){S={f,qs:null,i:0,ans:{},rev:{},done:false};S.qs=filtered();render();}
+function start(f){S={page:'quiz',f,qs:null,i:0,ans:{},rev:{},done:false};S.qs=filtered();render();}
+function goMain(){S={page:'main',f:'all',qs:[],i:0,ans:{},rev:{},done:false};render();}
 function score(){return S.qs.filter((q,i)=>q.t==='mc'&&S.ans[i]===q.a).length;}
 function render(){
   const app=document.getElementById('app');
+  if(S.page==='main'){
+    const mc=Q.filter(x=>x.t==='mc').length,sb=Q.filter(x=>x.t==='sub').length;
+    const subjects=['정치·경제','교육·의료·복지','사회·노동·역사','법률·언론·문화'];
+    const catCards=subjects.map(s=>{const n=Q.filter(x=>x.s===s).length;return`<button class="mp-cat" onclick="start('${s}')"><div class="mp-cat-name">${s}</div><div class="mp-cat-cnt">${n}문항</div></button>`;}).join('');
+    app.innerHTML=`<div class="mp"><div class="mp-title">장로고시 지침서 (퀴즈)</div><div class="mp-sub">총 ${Q.length}문항 · 객관식 ${mc} · 주관식 ${sb}</div><div class="mp-cats">${catCards}</div><button class="mp-start" onclick="start('all')">전체 문제 풀기</button><div class="mp-fbtns"><button class="mp-fb" onclick="start('mc')">객관식만</button><button class="mp-fb" onclick="start('sub')">주관식만</button></div></div>`;
+    return;
+  }
   if(S.done){
     const mc=S.qs.filter(q=>q.t==='mc').length,sb=S.qs.filter(q=>q.t==='sub').length;
-    app.innerHTML=`<div class="scard"><div style="font-size:15px;color:var(--color-text-secondary)">퀴즈 완료!</div><div class="snum">${score()}<span style="font-size:22px;color:var(--color-text-secondary)">/${mc}</span></div><div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem">객관식 정답 · 주관식 ${sb}문항 자가채점</div>${CATS.map(f=>`<button class="rbtn" onclick="start('${f}')">${CL[f]} 다시풀기</button>`).join('')}</div>`;
+    app.innerHTML=`<div class="scard"><div style="font-size:15px;color:var(--color-text-secondary)">퀴즈 완료!</div><div class="snum">${score()}<span style="font-size:22px;color:var(--color-text-secondary)">/${mc}</span></div><div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem">객관식 정답 · 주관식 ${sb}문항 자가채점</div><button class="rbtn" onclick="goMain()" style="background:#534AB7;color:#fff;border-color:#534AB7;margin-bottom:.5rem">메인으로</button><br>${CATS.map(f=>`<button class="rbtn" onclick="start('${f}')">${CL[f]} 다시풀기</button>`).join('')}</div>`;
     return;
   }
   const q=S.qs[S.i],tot=S.qs.length,prog=Math.round(S.i/tot*100);
@@ -334,11 +356,11 @@ function render(){
     if(S.rev[S.i])body+=`<div class="result res-ok" style="margin-top:.7rem"><b style="font-weight:500">모범 답안:</b> ${q.a}</div>`;
   }
   const mcn=S.qs.filter(x=>x.t==='mc').length;
-  app.innerHTML=`<div class="hdr"><h2>일반 상식 개정판 퀴즈</h2><span class="bdg">${S.i+1} / ${tot}</span></div><div class="prog"><div class="prog-f" style="width:${prog}%"></div></div><div class="fbar">${fbar}</div><div class="card"><div class="qmeta">${q.s} · Q${S.i+1}</div><span class="qbadge ${q.t==='mc'?'bmc':'bsub'}">${q.t==='mc'?'객관식':'주관식'}</span><div class="qtxt">${q.q}</div>${body}</div><div class="nav"><button class="nb" onclick="mv(-1)" ${S.i===0?'disabled':''}>← 이전</button><span class="ninfo">${mcn>0?`객관식 ${score()}/${mcn} 정답`:'주관식'}</span>${S.i===tot-1?`<button class="nb" onclick="S.done=true;render()">결과 보기 →</button>`:`<button class="nb" onclick="mv(1)" ${!done?'disabled':''}>다음 →</button>`}</div>`;
+  app.innerHTML=`<div class="hdr"><h2 onclick="goMain()">장로고시 지침서</h2><span class="bdg">${S.i+1} / ${tot}</span></div><div class="prog"><div class="prog-f" style="width:${prog}%"></div></div><div class="fbar">${fbar}</div><div class="card"><div class="qmeta">${q.s} · Q${S.i+1}</div><span class="qbadge ${q.t==='mc'?'bmc':'bsub'}">${q.t==='mc'?'객관식':'주관식'}</span><div class="qtxt">${q.q}</div>${body}</div><div class="nav"><button class="nb" onclick="mv(-1)" ${S.i===0?'disabled':''}>← 이전</button><span class="ninfo">${mcn>0?`객관식 ${score()}/${mcn} 정답`:'주관식'}</span>${S.i===tot-1?`<button class="nb" onclick="S.done=true;render()">결과 보기 →</button>`:`<button class="nb" onclick="mv(1)" ${!done?'disabled':''}>다음 →</button>`}</div>`;
   if(q.t==='sub'&&!S.rev[S.i])setTimeout(()=>{const e=document.getElementById('si');if(e)e.focus();},40);
 }
 function pick(j){if(S.ans[S.i]!==undefined)return;S.ans[S.i]=j;render();}
 function reveal(){if(S.rev[S.i])return;const e=document.getElementById('si');S.ans[S.i]=e?e.value:'';S.rev[S.i]=true;render();}
 function mv(d){S.i=Math.max(0,Math.min(S.qs.length-1,S.i+d));render();}
-start('all');
+render();
 </script>
